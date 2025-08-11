@@ -8,12 +8,14 @@ const appState = {
 // Éléments DOM
 const form = document.getElementById('inscriptionForm');
 const inputs = {
-    nomPrenom: document.getElementById('nomPrenom'),
+    nom: document.getElementById('nom'),
+    prenom: document.getElementById('prenom'),
     numeroCP: document.getElementById('numeroCP'),
     lieuAffectation: document.getElementById('lieuAffectation')
 };
 const errors = {
-    nomPrenom: document.getElementById('nomPrenomError'),
+    nom: document.getElementById('nomError'),
+    prenom: document.getElementById('prenomError'),
     numeroCP: document.getElementById('numeroCPError'),
     lieuAffectation: document.getElementById('lieuAffectationError')
 };
@@ -21,7 +23,7 @@ const cpValidation = document.getElementById('cpValidation');
 const submitBtn = document.getElementById('submitBtn');
 const successMessage = document.getElementById('successMessage');
 
-// Validation en temps réel du CP
+// Validation en temps réel du CP avec normalisation
 inputs.numeroCP.addEventListener('input', (e) => {
     const cp = e.target.value.trim();
     
@@ -33,47 +35,73 @@ inputs.numeroCP.addEventListener('input', (e) => {
     // Validation du format
     if (cp.length === 0) return;
     
-    if (!/^[0-9]+$/.test(cp)) {
-        showError('numeroCP', 'Le numéro de CP ne peut contenir que des chiffres');
+    // Normaliser en majuscules pour la validation et l'affichage
+    const normalizedCP = cp.toUpperCase();
+    if (e.target.value !== normalizedCP) {
+        e.target.value = normalizedCP;
+    }
+    
+    // Validation du format alphanumérique
+    if (!/^[A-Z0-9]+$/.test(normalizedCP)) {
+        showError('numeroCP', 'Le numéro de CP ne peut contenir que des lettres et des chiffres');
         return;
     }
     
-    if (cp.length !== 5) {
-        if (cp.length < 5) {
-            showValidationMessage('Le numéro de CP doit contenir exactement 5 chiffres', 'checking');
-        } else {
-            showError('numeroCP', 'Le numéro de CP ne peut pas dépasser 5 chiffres');
-        }
+    if (normalizedCP.length < 3) {
+        showValidationMessage('Le numéro de CP doit contenir au moins 3 caractères', 'checking');
+        return;
+    }
+    
+    if (normalizedCP.length > 10) {
+        showError('numeroCP', 'Le numéro de CP ne peut pas dépasser 10 caractères');
         return;
     }
     
     // Vérification anti-doublons avec délai
     clearTimeout(appState.cpCheckTimeout);
-    appState.cpCheckTimeout = setTimeout(() => checkCPAvailability(cp), 500);
+    appState.cpCheckTimeout = setTimeout(() => checkCPAvailability(normalizedCP), 500);
 });
 
 // Validation des autres champs
-inputs.nomPrenom.addEventListener('blur', validateNomPrenom);
+inputs.nom.addEventListener('blur', validateNom);
+inputs.prenom.addEventListener('blur', validatePrenom);
 inputs.lieuAffectation.addEventListener('blur', validateLieuAffectation);
 
 // Soumission du formulaire
 form.addEventListener('submit', handleSubmit);
 
 // Fonctions de validation
-function validateNomPrenom() {
-    const value = inputs.nomPrenom.value.trim();
+function validateNom() {
+    const value = inputs.nom.value.trim();
     
     if (!value) {
-        showError('nomPrenom', 'Le nom et prénom sont obligatoires');
+        showError('nom', 'Le nom est obligatoire');
         return false;
     }
     
     if (value.length < 2) {
-        showError('nomPrenom', 'Le nom et prénom doivent contenir au moins 2 caractères');
+        showError('nom', 'Le nom doit contenir au moins 2 caractères');
         return false;
     }
     
-    clearError('nomPrenom');
+    clearError('nom');
+    return true;
+}
+
+function validatePrenom() {
+    const value = inputs.prenom.value.trim();
+    
+    if (!value) {
+        showError('prenom', 'Le prénom est obligatoire');
+        return false;
+    }
+    
+    if (value.length < 2) {
+        showError('prenom', 'Le prénom doit contenir au moins 2 caractères');
+        return false;
+    }
+    
+    clearError('prenom');
     return true;
 }
 
@@ -95,15 +123,15 @@ function validateLieuAffectation() {
 }
 
 function validateNumeroCP() {
-    const value = inputs.numeroCP.value.trim();
+    const value = inputs.numeroCP.value.trim().toUpperCase();
     
     if (!value) {
         showError('numeroCP', 'Le numéro de CP est obligatoire');
         return false;
     }
     
-    if (!/^[0-9]{5}$/.test(value)) {
-        showError('numeroCP', 'Le numéro de CP doit contenir exactement 5 chiffres');
+    if (!/^[A-Z0-9]{3,10}$/.test(value)) {
+        showError('numeroCP', 'Le numéro de CP doit contenir entre 3 et 10 caractères (lettres et chiffres)');
         return false;
     }
     
@@ -153,7 +181,7 @@ async function checkCPInDatabase(cp) {
         if (typeof supabase === 'undefined') {
             console.warn('Supabase non configuré, simulation de la vérification');
             // Simuler quelques CP déjà pris pour les tests
-            const takenCPs = ['12345', '54321', '99999'];
+            const takenCPs = ['8710320P', '1234567A', 'TESTCP01', '9999999Z'];
             return !takenCPs.includes(cp);
         }
         
@@ -179,7 +207,7 @@ async function handleSubmit(e) {
     if (appState.isSubmitting) return;
     
     // Validation de tous les champs
-    const isValid = validateNomPrenom() && validateNumeroCP() && validateLieuAffectation();
+    const isValid = validateNom() && validatePrenom() && validateNumeroCP() && validateLieuAffectation();
     
     if (!isValid) {
         // Scroll vers le premier champ en erreur
@@ -196,8 +224,10 @@ async function handleSubmit(e) {
     
     try {
         const formData = {
-            numero_cp: inputs.numeroCP.value.trim(),
-            nom_prenom: inputs.nomPrenom.value.trim(),
+            numero_cp: inputs.numeroCP.value.trim().toUpperCase(),
+            nom: inputs.nom.value.trim(),
+            prenom: inputs.prenom.value.trim(),
+            nom_prenom: `${inputs.nom.value.trim()} ${inputs.prenom.value.trim()}`, // Pour compatibilité
             lieu_affectation_uo: inputs.lieuAffectation.value.trim(),
             statut: 'Demande reçue',
             date_inscription: new Date().toISOString()
@@ -296,5 +326,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Formulaire d\'inscription SUD Rail initialisé');
     
     // Focus sur le premier champ
-    inputs.nomPrenom.focus();
+    inputs.nom.focus();
 });
