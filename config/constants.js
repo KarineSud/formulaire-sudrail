@@ -26,11 +26,21 @@ const APP_CONSTANTS = {
     
     // Validation des champs
     VALIDATION: {
-        CP_PATTERN: /^[0-9]{5}$/,
+        CP_PATTERN: /^[A-Z0-9]{3,10}$/, // CP alphanumérique 3-10 caractères
         MIN_NAME_LENGTH: 2,
-        MAX_NAME_LENGTH: 100,
+        MAX_NAME_LENGTH: 50,
+        MAX_CP_LENGTH: 10,
+        MIN_CP_LENGTH: 3,
         MAX_UO_LENGTH: 100,
         MIN_UO_LENGTH: 2
+    },
+    
+    // Exemples pour les champs
+    EXAMPLES: {
+        NOM: 'Bleubar',
+        PRENOM: 'Karine',
+        CP: '8710320P',
+        UO: 'UO PCD-COGC'
     },
     
     // Configuration de sécurité
@@ -49,12 +59,14 @@ const APP_CONSTANTS = {
         },
         ERRORS: {
             CP_REQUIRED: 'Le numéro de CP est obligatoire',
-            CP_FORMAT: 'Le numéro de CP doit contenir exactement 5 chiffres',
-            CP_NUMBERS_ONLY: 'Le numéro de CP ne peut contenir que des chiffres',
+            CP_FORMAT: 'Le numéro de CP doit contenir entre 3 et 10 caractères (lettres et chiffres)',
+            CP_ALPHANUMERIC: 'Le numéro de CP ne peut contenir que des lettres et des chiffres',
             CP_ALREADY_EXISTS: 'Ce numéro de CP est déjà inscrit',
             CP_CHECK_ERROR: 'Erreur lors de la vérification. Veuillez réessayer.',
-            NAME_REQUIRED: 'Le nom et prénom sont obligatoires',
-            NAME_MIN_LENGTH: 'Le nom et prénom doivent contenir au moins 2 caractères',
+            NOM_REQUIRED: 'Le nom est obligatoire',
+            NOM_MIN_LENGTH: 'Le nom doit contenir au moins 2 caractères',
+            PRENOM_REQUIRED: 'Le prénom est obligatoire',
+            PRENOM_MIN_LENGTH: 'Le prénom doit contenir au moins 2 caractères',
             UO_REQUIRED: 'Le lieu d\'affectation est obligatoire',
             UO_MIN_LENGTH: 'Le lieu d\'affectation doit contenir au moins 2 caractères',
             SUBMISSION_ERROR: 'Une erreur est survenue lors de votre inscription. Veuillez réessayer ou contacter vos délégués SUD Rail.'
@@ -63,19 +75,20 @@ const APP_CONSTANTS = {
             CP_CHECKING: 'Vérification du numéro de CP...',
             CP_AVAILABLE: '✓ Numéro de CP disponible',
             CP_TAKEN: '✗ Ce numéro de CP est déjà inscrit',
-            CP_FORMAT_ERROR: 'Le numéro de CP doit contenir exactement 5 chiffres'
+            CP_FORMAT_ERROR: 'Le numéro de CP doit contenir au moins 3 caractères'
         }
     },
     
     // Configuration email
     EMAIL: {
         TEMPLATE: {
-            SUBJECT: '[SUD Rail] Nouvelle inscription - {{nom_prenom}}',
+            SUBJECT: '[SUD Rail] Nouvelle inscription - {{nom}} {{prenom}}',
             BODY: `Bonjour Karine,
 
 Nouvelle inscription reçue pour le forum du 07 octobre 2025 :
 
-👤 Nom/Prénom : {{nom_prenom}}
+👤 Nom : {{nom}}
+👤 Prénom : {{prenom}}
 🏢 Numéro CP : {{numero_cp}}
 📍 Lieu d'affectation (UO) : {{lieu_affectation}}
 📅 Date d'inscription : {{date_inscription}}
@@ -117,12 +130,22 @@ window.APP_HELPERS = {
     
     // Validation du format CP
     isValidCP: (cp) => {
-        return APP_CONSTANTS.VALIDATION.CP_PATTERN.test(cp);
+        return APP_CONSTANTS.VALIDATION.CP_PATTERN.test(cp.toUpperCase());
+    },
+    
+    // Normalisation du CP (majuscules)
+    normalizeCP: (cp) => {
+        return cp.trim().toUpperCase();
     },
     
     // Nettoyage des chaînes
     sanitizeString: (str) => {
         return str.trim().replace(/\s+/g, ' ');
+    },
+    
+    // Formatage nom/prénom
+    formatName: (nom, prenom) => {
+        return `${nom.trim()} ${prenom.trim()}`;
     },
     
     // Template simple pour les emails
