@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription Forum Contractuels SUD Rail</title>
     <link rel="stylesheet" href="style.css">
+    <!-- EmailJS v4 pour les notifications automatiques -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body class="logo-only-header">
     <div class="container">
@@ -95,5 +97,11 @@
     <script src="config/supabase.js"></script>
     <script src="config/constants.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Configuration EmailJS pour notifications automatiques
+        (function() {
+            emailjs.init("4LkUHc9SbFqzXSZ-U"); // ✅ Votre Public Key !
+        })();
+    </script>
 </body>
 </html>
