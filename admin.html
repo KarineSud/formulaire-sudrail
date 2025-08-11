@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration - SUD Rail</title>
     <link rel="stylesheet" href="admin.css">
-    <!-- EmailJS pour l'envoi d'emails -->
-    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <!-- EmailJS v4 (dernière version supportée) -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
     <!-- Page de connexion -->
@@ -219,9 +219,9 @@
     <script src="config/constants.js"></script>
     <script src="admin.js"></script>
     <script>
-        // Configuration EmailJS
+        // Configuration EmailJS v4 avec votre vraie Public Key
         (function() {
-            emailjs.init("YOUR_PUBLIC_KEY"); // À remplacer par votre clé publique EmailJS
+            emailjs.init("4LkUHc9SbFqzXSZ-U"); // ✅ Votre vraie Public Key !
         })();
     </script>
 </body>
