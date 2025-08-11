@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - SUD Rail</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Page de connexion -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="logo-container">
+                <div class="logo-text">
+                    <div class="logo-main">SUD</div>
+                    <div class="logo-sub">Rail</div>
+                    <div class="logo-region">Administration</div>
+                </div>
+            </div>
+            
+            <h2>Accès Administration</h2>
+            <p class="login-subtitle">Gestion des inscriptions au forum</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="karinesudrail@gmail.com">
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    <span class="btn-text">Se connecter</span>
+                    <span class="loader" id="loginLoader"></span>
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <a href="index.html">← Retour au formulaire</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard principal -->
+    <div id="dashboardPage" class="dashboard-container" style="display: none;">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo-text small">
+                    <div class="logo-main">SUD</div>
+                    <div class="logo-sub">Rail</div>
+                    <div class="logo-region">Dashboard</div>
+                </div>
+                
+                <div class="header-actions">
+                    <span class="admin-name">Bonjour, Karine</span>
+                    <button id="logoutBtn" class="btn-logout">Déconnexion</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-main">
+            <!-- Statistiques -->
+            <section class="stats-section">
+                <h2>📊 Résumé des inscriptions</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalInscriptions">0</div>
+                        <div class="stat-label">Total inscriptions</div>
+                    </div>
+                    <div class="stat-card status-received">
+                        <div class="stat-number" id="statusReceived">0</div>
+                        <div class="stat-label">🟡 Demandes reçues</div>
+                    </div>
+                    <div class="stat-card status-requested">
+                        <div class="stat-number" id="statusRequested">0</div>
+                        <div class="stat-label">🔵 Dégagement demandé</div>
+                    </div>
+                    <div class="stat-card status-accepted">
+                        <div class="stat-number" id="statusAccepted">0</div>
+                        <div class="stat-label">✅ Demandes acceptées</div>
+                    </div>
+                    <div class="stat-card status-refused">
+                        <div class="stat-number" id="statusRefused">0</div>
+                        <div class="stat-label">❌ Demandes refusées</div>
+                    </div>
+                    <div class="stat-card status-transmitted">
+                        <div class="stat-number" id="statusTransmitted">0</div>
+                        <div class="stat-label">📧 Réponses transmises</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration email -->
+            <section class="email-config-section">
+                <h3>📧 Configuration des notifications</h3>
+                <div class="email-config">
+                    <div class="form-group inline">
+                        <label for="notificationEmail">Email de notification :</label>
+                        <input type="email" id="notificationEmail" value="karinesudrail@gmail.com">
+                        <button id="updateEmailBtn" class="btn-secondary">Mettre à jour</button>
+                        <button id="testEmailBtn" class="btn-secondary">Test</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filtres et recherche -->
+            <section class="filters-section">
+                <h3>🔍 Gestion des inscriptions</h3>
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label for="statusFilter">Statut :</label>
+                        <select id="statusFilter">
+                            <option value="">Tous les statuts</option>
+                            <option value="Demande reçue">🟡 Demandes reçues</option>
+                            <option value="Demande de dégagement demandée">🔵 Dégagement demandé</option>
+                            <option value="Demande acceptée">✅ Demandes acceptées</option>
+                            <option value="Demande refusée">❌ Demandes refusées</option>
+                            <option value="Réponse transmise à l'agent">📧 Réponses transmises</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sortBy">Trier par :</label>
+                        <select id="sortBy">
+                            <option value="date_desc">Date (récent)</option>
+                            <option value="date_asc">Date (ancien)</option>
+                            <option value="nom_asc">Nom A→Z</option>
+                            <option value="nom_desc">Nom Z→A</option>
+                            <option value="statut">Statut</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="searchText">Recherche :</label>
+                        <input type="text" id="searchText" placeholder="Nom, prénom, CP, UO...">
+                    </div>
+                    
+                    <button id="refreshBtn" class="btn-secondary">🔄 Actualiser</button>
+                </div>
+            </section>
+
+            <!-- Tableau des inscriptions -->
+            <section class="table-section">
+                <div class="table-container">
+                    <table class="inscriptions-table" id="inscriptionsTable">
+                        <thead>
+                            <tr>
+                                <th data-sort="nom">Nom</th>
+                                <th data-sort="prenom">Prénom</th>
+                                <th data-sort="numero_cp">CP</th>
+                                <th data-sort="lieu_affectation_uo">Lieu d'affectation</th>
+                                <th data-sort="statut">État</th>
+                                <th data-sort="date_inscription">Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inscriptionsTableBody">
+                            <!-- Les données seront chargées par JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>📭 Aucune inscription trouvée</p>
+                    <small>Les nouvelles inscriptions apparaîtront ici automatiquement</small>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de modification du statut -->
+    <div id="statusModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Modifier le statut</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="participant-info">
+                    <h4 id="modalParticipantName">Nom Prénom</h4>
+                    <p><strong>CP :</strong> <span id="modalParticipantCP">123456</span></p>
+                    <p><strong>UO :</strong> <span id="modalParticipantUO">Lieu</span></p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalStatus">Nouveau statut :</label>
+                    <select id="modalStatus">
+                        <option value="Demande reçue">🟡 Demande reçue</option>
+                        <option value="Demande de dégagement demandée">🔵 Demande de dégagement demandée</option>
+                        <option value="Demande acceptée">✅ Demande acceptée</option>
+                        <option value="Demande refusée">❌ Demande refusée</option>
+                        <option value="Réponse transmise à l'agent">📧 Réponse transmise à l'agent</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalComment">Commentaire (optionnel) :</label>
+                    <textarea id="modalComment" rows="3" placeholder="Notes sur ce changement de statut..."></textarea>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="modalCancel" class="btn-secondary">Annuler</button>
+                <button id="modalSave" class="btn-primary">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config/supabase.js"></script>
+    <script src="config/constants.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
