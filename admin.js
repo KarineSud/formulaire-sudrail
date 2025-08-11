@@ -18,14 +18,12 @@ const adminState = {
     }
 };
 
-// Configuration EmailJS - À PERSONNALISER
+// Configuration EmailJS - METTEZ VOS VRAIES VALEURS ICI !
 const EMAIL_CONFIG = {
-    // Remplacez par vos vraies valeurs EmailJS
-    SERVICE_ID: 'gmail',  // Votre service ID
-    TEMPLATE_ID: 'template_test', // Votre template ID
-    PUBLIC_KEY: 'YOUR_PUBLIC_KEY', // Votre clé publique
-    // Configuration temporaire pour tests
-    IS_CONFIGURED: false  // Passez à true quand EmailJS est configuré
+    SERVICE_ID: 'service_e0akyao',    // ✅ Votre Service ID
+    TEMPLATE_ID: 'VOTRE_TEMPLATE_ID', // 🔧 À remplacer par votre Template ID
+    PUBLIC_KEY: 'VOTRE_PUBLIC_KEY',   // 🔧 À remplacer par votre Public Key
+    IS_CONFIGURED: false              // 🔧 Passez à true quand tout est configuré
 };
 
 // Éléments DOM
@@ -108,10 +106,17 @@ function initializeAdmin() {
 }
 
 function checkEmailConfiguration() {
-    if (!EMAIL_CONFIG.IS_CONFIGURED) {
-        showEmailStatus('⚠️ EmailJS non configuré - Mode simulation', 'warning');
+    if (!EMAIL_CONFIG.IS_CONFIGURED || 
+        EMAIL_CONFIG.TEMPLATE_ID === 'VOTRE_TEMPLATE_ID' || 
+        EMAIL_CONFIG.PUBLIC_KEY === 'VOTRE_PUBLIC_KEY') {
+        showEmailStatus('⚙️ Configuration EmailJS requise - Mode simulation', 'warning');
+        console.log('📧 Configuration EmailJS nécessaire:');
+        console.log('- Service ID: ✅', EMAIL_CONFIG.SERVICE_ID);
+        console.log('- Template ID: ❌ À configurer');
+        console.log('- Public Key: ❌ À configurer');
     } else {
         showEmailStatus('✅ EmailJS configuré et prêt', 'success');
+        console.log('📧 EmailJS entièrement configuré');
     }
 }
 
@@ -637,46 +642,67 @@ async function saveEmailConfiguration(email) {
 }
 
 async function sendTestEmail(email) {
-    // Vérifier si EmailJS est configuré et disponible
-    if (!EMAIL_CONFIG.IS_CONFIGURED) {
-        // Mode simulation pour le développement
-        console.log('📧 SIMULATION - Email de test envoyé à:', email);
+    // Vérifier si EmailJS est correctement configuré
+    if (!EMAIL_CONFIG.IS_CONFIGURED || 
+        EMAIL_CONFIG.TEMPLATE_ID === 'VOTRE_TEMPLATE_ID' || 
+        EMAIL_CONFIG.PUBLIC_KEY === 'VOTRE_PUBLIC_KEY') {
+        
+        // Mode simulation avec instructions claires
+        console.log('📧 SIMULATION - Email de test pour:', email);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Avertir l'utilisateur
-        alert('⚠️ Mode Simulation\n\nEmailJS n\'est pas encore configuré.\nL\'email de test a été simulé.\n\nPour recevoir de vrais emails, configurez EmailJS dans admin.js');
+        const configMsg = `⚙️ Configuration EmailJS Requise
+
+Pour recevoir de vrais emails :
+
+1. Service ID: ✅ ${EMAIL_CONFIG.SERVICE_ID}
+2. Template ID: ❌ Pas configuré  
+3. Public Key: ❌ Pas configuré
+
+Mettez à jour ces valeurs dans admin.js puis passez IS_CONFIGURED à true.
+
+L'email de test a été simulé.`;
+        
+        alert(configMsg);
         return true;
     }
     
     // Vérifier si EmailJS est chargé
     if (typeof emailjs === 'undefined') {
-        throw new Error('EmailJS non chargé');
+        throw new Error('EmailJS non chargé. Vérifiez la balise script.');
     }
     
     try {
         // Envoyer l'email via EmailJS
-        const response = await emailjs.send(
-            EMAIL_CONFIG.SERVICE_ID,
-            EMAIL_CONFIG.TEMPLATE_ID,
-            {
-                to_email: email,
-                to_name: 'Karine',
-                subject: '[SUD Rail] Test de notification - Dashboard',
-                message: `Bonjour Karine,
+        const templateParams = {
+            to_email: email,
+            to_name: 'Karine',
+            subject: '[SUD Rail] Test de notification - Dashboard',
+            message: `Bonjour Karine,
 
 Ceci est un email de test pour vérifier que le système de notification fonctionne correctement.
 
 ✅ Configuration validée :
 - Dashboard administrateur opérationnel
-- Service EmailJS configuré
+- Service EmailJS configuré (${EMAIL_CONFIG.SERVICE_ID})
+- Template configuré (${EMAIL_CONFIG.TEMPLATE_ID})
 - Adresse email : ${email}
 
 Vous recevrez maintenant automatiquement un email pour chaque nouvelle inscription au forum du 07 octobre 2025.
 
+🎯 Forum Contractuels SUD Rail
+📅 Date : 07 octobre 2025 à 9h30
+📍 Lieu : Théâtre Traversière, 15 bis rue Traversière 75012 Paris
+
 Cordialement,
 Système d'inscription SUD Rail`,
-                dashboard_url: window.location.href
-            },
+            dashboard_url: window.location.href
+        };
+        
+        const response = await emailjs.send(
+            EMAIL_CONFIG.SERVICE_ID,
+            EMAIL_CONFIG.TEMPLATE_ID,
+            templateParams,
             EMAIL_CONFIG.PUBLIC_KEY
         );
         
@@ -685,13 +711,15 @@ Système d'inscription SUD Rail`,
         
     } catch (error) {
         console.error('❌ Erreur EmailJS:', error);
-        throw new Error('Erreur lors de l\'envoi via EmailJS: ' + error.text || error.message);
+        throw new Error('Erreur lors de l\'envoi via EmailJS: ' + (error.text || error.message));
     }
 }
 
 // Fonction pour envoyer email lors de nouvelle inscription
 async function sendNewInscriptionEmail(inscription) {
-    if (!EMAIL_CONFIG.IS_CONFIGURED || typeof emailjs === 'undefined') {
+    if (!EMAIL_CONFIG.IS_CONFIGURED || 
+        EMAIL_CONFIG.TEMPLATE_ID === 'VOTRE_TEMPLATE_ID' || 
+        typeof emailjs === 'undefined') {
         console.log('📧 SIMULATION - Email nouvelle inscription pour:', inscription.nom_prenom);
         return true;
     }
@@ -699,14 +727,11 @@ async function sendNewInscriptionEmail(inscription) {
     const notificationEmail = elements.notificationEmail.value || 'karinesudrail@gmail.com';
     
     try {
-        const response = await emailjs.send(
-            EMAIL_CONFIG.SERVICE_ID,
-            EMAIL_CONFIG.TEMPLATE_ID,
-            {
-                to_email: notificationEmail,
-                to_name: 'Karine',
-                subject: `[SUD Rail] Nouvelle inscription - ${inscription.nom_prenom}`,
-                message: `Bonjour Karine,
+        const templateParams = {
+            to_email: notificationEmail,
+            to_name: 'Karine',
+            subject: `[SUD Rail] Nouvelle inscription - ${inscription.nom_prenom}`,
+            message: `Bonjour Karine,
 
 Nouvelle inscription reçue pour le forum du 07 octobre 2025 :
 
@@ -717,10 +742,19 @@ Nouvelle inscription reçue pour le forum du 07 octobre 2025 :
 
 ➡️ Accéder au dashboard : ${window.location.href}
 
+🎯 Forum Contractuels SUD Rail
+📅 Date : 07 octobre 2025 à 9h30
+📍 Lieu : Théâtre Traversière, 15 bis rue Traversière 75012 Paris
+
 Cordialement,
 Système d'inscription SUD Rail`,
-                dashboard_url: window.location.href
-            },
+            dashboard_url: window.location.href
+        };
+        
+        const response = await emailjs.send(
+            EMAIL_CONFIG.SERVICE_ID,
+            EMAIL_CONFIG.TEMPLATE_ID,
+            templateParams,
             EMAIL_CONFIG.PUBLIC_KEY
         );
         
@@ -767,4 +801,6 @@ function debounce(func, wait) {
 // Export pour utilisation dans le HTML (onclick)
 window.openStatusModal = openStatusModal;
 
-console.log('🎛️ Dashboard admin initialisé avec EmailJS');
+console.log('🎛️ Dashboard admin initialisé');
+console.log('📧 EmailJS Service ID:', EMAIL_CONFIG.SERVICE_ID);
+console.log('📧 Configuration complète:', EMAIL_CONFIG.IS_CONFIGURED ? '✅' : '⚙️ En attente');
