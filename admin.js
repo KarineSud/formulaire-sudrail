@@ -438,9 +438,12 @@ function renderTable() {
                     </span>
                 </td>
                 <td>${APP_HELPERS.formatDate(inscription.date_inscription)}</td>
-                <td>
-                    <button class="btn-action" onclick="openStatusModal('${inscription.id}')">
-                        Modifier
+                <td class="actions-cell">
+                    <button class="btn-action btn-modify" onclick="openStatusModal('${inscription.id}')" title="Modifier le statut">
+                        📝 Modifier
+                    </button>
+                    <button class="btn-action btn-delete" onclick="confirmDeleteInscription('${inscription.id}')" title="Supprimer l'inscription">
+                        🗑️ Supprimer
                     </button>
                 </td>
             </tr>
@@ -555,6 +558,76 @@ async function updateInscriptionStatus(id, newStatus, comment) {
     } else {
         // Simulation si pas de Supabase
         console.warn('Supabase non configuré, simulation de la mise à jour');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return true;
+    }
+}
+
+// === SUPPRESSION D'INSCRIPTION ===
+
+function confirmDeleteInscription(inscriptionId) {
+    const inscription = adminState.inscriptions.find(i => i.id === inscriptionId);
+    if (!inscription) return;
+    
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer cette inscription ?\n\n` +
+        `👤 ${inscription.nom_prenom}\n` +
+        `🏢 CP: ${inscription.numero_cp}\n` +
+        `📍 UO: ${inscription.lieu_affectation_uo}\n` +
+        `📅 Date: ${new Date(inscription.date_inscription).toLocaleDateString('fr-FR')}\n\n` +
+        `⚠️ Cette action est irréversible !`;
+    
+    if (confirm(confirmMessage)) {
+        deleteInscription(inscriptionId);
+    }
+}
+
+async function deleteInscription(inscriptionId) {
+    try {
+        showLoading(true);
+        
+        const success = await deleteInscriptionFromDatabase(inscriptionId);
+        
+        if (success) {
+            // Supprimer localement
+            adminState.inscriptions = adminState.inscriptions.filter(i => i.id !== inscriptionId);
+            
+            // Rafraîchir l'affichage
+            updateStats();
+            applyFilters();
+            
+            showSuccess('Inscription supprimée avec succès');
+        } else {
+            showError('Erreur lors de la suppression');
+        }
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        showError('Erreur lors de la suppression');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function deleteInscriptionFromDatabase(id) {
+    if (typeof supabase !== 'undefined') {
+        try {
+            const { error } = await supabase
+                .from('inscriptions')
+                .delete()
+                .eq('id', id);
+            
+            if (error) {
+                console.error('Erreur Supabase delete:', error);
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Erreur de connexion Supabase:', error);
+            return false;
+        }
+    } else {
+        // Simulation si pas de Supabase
+        console.warn('Supabase non configuré, simulation de la suppression');
         await new Promise(resolve => setTimeout(resolve, 500));
         return true;
     }
@@ -774,9 +847,11 @@ function debounce(func, wait) {
 
 // Export pour utilisation dans le HTML (onclick)
 window.openStatusModal = openStatusModal;
+window.confirmDeleteInscription = confirmDeleteInscription;
 
-console.log('🎛️ Dashboard admin initialisé avec EmailJS FINAL');
+console.log('🎛️ Dashboard admin initialisé avec fonction SUPPRESSION');
 console.log('📧 EmailJS Service ID:', EMAIL_CONFIG.SERVICE_ID);
 console.log('📧 EmailJS Template ID:', EMAIL_CONFIG.TEMPLATE_ID);
 console.log('📧 EmailJS Public Key:', EMAIL_CONFIG.PUBLIC_KEY);
+console.log('🗑️ Fonction suppression activée dans le dashboard');
 console.log('📧 Configuration finale: ✅ PRÊT POUR VRAIS EMAILS !');
