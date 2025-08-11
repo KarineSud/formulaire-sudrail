@@ -5,6 +5,14 @@ const appState = {
     isValidating: false
 };
 
+// Configuration EmailJS - IDENTIQUE AU DASHBOARD
+const EMAIL_CONFIG = {
+    SERVICE_ID: 'service_e0akyao',
+    TEMPLATE_ID: 'template_sfn136n', 
+    PUBLIC_KEY: '4LkUHc9SbFqzXSZ-U',
+    IS_CONFIGURED: true
+};
+
 // Éléments DOM
 const form = document.getElementById('inscriptionForm');
 const inputs = {
@@ -237,6 +245,8 @@ async function handleSubmit(e) {
         const success = await submitToDatabase(formData);
         
         if (success) {
+            // Envoyer email de notification à Karine
+            await sendNewInscriptionEmail(formData);
             showSuccessMessage();
         } else {
             throw new Error('Erreur lors de l\'inscription');
@@ -274,6 +284,65 @@ async function submitToDatabase(data) {
         return true;
     } catch (error) {
         console.error('Erreur de connexion Supabase:', error);
+        return false;
+    }
+}
+
+// === NOTIFICATION EMAIL AUTOMATIQUE À KARINE ===
+
+async function sendNewInscriptionEmail(inscription) {
+    // Vérifier si EmailJS est disponible
+    if (!EMAIL_CONFIG.IS_CONFIGURED || typeof emailjs === 'undefined') {
+        console.log('📧 SIMULATION - Email nouvelle inscription pour:', inscription.nom_prenom);
+        return true;
+    }
+    
+    const notificationEmail = 'karinesudrail@gmail.com'; // Email fixe de Karine
+    
+    try {
+        console.log('📧 Envoi notification email pour nouvelle inscription...');
+        
+        const templateParams = {
+            subject: `[SUD Rail] Nouvelle inscription - ${inscription.nom_prenom}`,
+            email: notificationEmail, // Utiliser "email" comme dans votre template
+            message: `Bonjour Karine,
+
+🎉 NOUVELLE INSCRIPTION REÇUE pour le forum du 07 octobre 2025 !
+
+👤 Nom/Prénom : ${inscription.nom_prenom}
+🏢 Numéro CP : ${inscription.numero_cp}
+📍 Lieu d'affectation (UO) : ${inscription.lieu_affectation_uo}
+📅 Date d'inscription : ${new Date(inscription.date_inscription).toLocaleString('fr-FR')}
+
+➡️ Accéder au dashboard pour gérer cette demande :
+${window.location.origin}/admin.html
+
+🎯 Forum Contractuels SUD Rail
+📅 Date : 07 octobre 2025 à 9h30
+📍 Lieu : Théâtre Traversière, 15 bis rue Traversière 75012 Paris
+
+Cette inscription est maintenant en statut "Demande reçue" et attend votre traitement dans le dashboard administrateur.
+
+Cordialement,
+Système d'inscription SUD Rail`,
+            dashboard_url: `${window.location.origin}/admin.html`
+        };
+        
+        console.log('📧 Paramètres email notification:', templateParams);
+        
+        const response = await emailjs.send(
+            EMAIL_CONFIG.SERVICE_ID,
+            EMAIL_CONFIG.TEMPLATE_ID,
+            templateParams,
+            EMAIL_CONFIG.PUBLIC_KEY
+        );
+        
+        console.log('✅ Email notification nouvelle inscription envoyé:', response);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erreur envoi email notification nouvelle inscription:', error);
+        // Ne pas faire échouer l'inscription si l'email ne marche pas
         return false;
     }
 }
@@ -324,6 +393,7 @@ function showSuccessMessage() {
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Formulaire d\'inscription SUD Rail initialisé');
+    console.log('📧 EmailJS configuré pour notifications automatiques:', EMAIL_CONFIG.IS_CONFIGURED);
     
     // Focus sur le premier champ
     inputs.nom.focus();
