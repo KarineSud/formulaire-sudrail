@@ -18,6 +18,16 @@ const adminState = {
     }
 };
 
+// Configuration EmailJS - À PERSONNALISER
+const EMAIL_CONFIG = {
+    // Remplacez par vos vraies valeurs EmailJS
+    SERVICE_ID: 'gmail',  // Votre service ID
+    TEMPLATE_ID: 'template_test', // Votre template ID
+    PUBLIC_KEY: 'YOUR_PUBLIC_KEY', // Votre clé publique
+    // Configuration temporaire pour tests
+    IS_CONFIGURED: false  // Passez à true quand EmailJS est configuré
+};
+
 // Éléments DOM
 const elements = {
     // Pages
@@ -48,6 +58,7 @@ const elements = {
     notificationEmail: document.getElementById('notificationEmail'),
     updateEmailBtn: document.getElementById('updateEmailBtn'),
     testEmailBtn: document.getElementById('testEmailBtn'),
+    emailStatus: document.getElementById('emailStatus'),
     
     // Filters
     statusFilter: document.getElementById('statusFilter'),
@@ -91,6 +102,24 @@ function initializeAdmin() {
     }
     
     setupEventListeners();
+    
+    // Vérifier la configuration EmailJS
+    checkEmailConfiguration();
+}
+
+function checkEmailConfiguration() {
+    if (!EMAIL_CONFIG.IS_CONFIGURED) {
+        showEmailStatus('⚠️ EmailJS non configuré - Mode simulation', 'warning');
+    } else {
+        showEmailStatus('✅ EmailJS configuré et prêt', 'success');
+    }
+}
+
+function showEmailStatus(message, type) {
+    if (elements.emailStatus) {
+        elements.emailStatus.textContent = message;
+        elements.emailStatus.className = `email-status ${type}`;
+    }
 }
 
 function setupEventListeners() {
@@ -211,7 +240,6 @@ async function loadInscriptions() {
     try {
         showLoading(true);
         
-        // TODO: Remplacer par vraie requête Supabase
         const data = await fetchInscriptionsFromDatabase();
         
         adminState.inscriptions = data;
@@ -231,26 +259,26 @@ async function loadInscriptions() {
 }
 
 async function fetchInscriptionsFromDatabase() {
-    // Simulation avec données de test
-    if (typeof supabase === 'undefined') {
-        console.warn('Supabase non configuré, utilisation de données de test');
-        return generateTestData();
-    }
-    
-    try {
-        const { data, error } = await supabase
-            .from('inscriptions')
-            .select('*')
-            .order('date_inscription', { ascending: false });
-        
-        if (error) {
-            console.error('Erreur Supabase:', error);
+    // Essayer Supabase d'abord
+    if (typeof supabase !== 'undefined') {
+        try {
+            const { data, error } = await supabase
+                .from('inscriptions')
+                .select('*')
+                .order('date_inscription', { ascending: false });
+            
+            if (error) {
+                console.error('Erreur Supabase:', error);
+                return generateTestData();
+            }
+            
+            return data || [];
+        } catch (error) {
+            console.error('Erreur de connexion Supabase:', error);
             return generateTestData();
         }
-        
-        return data || [];
-    } catch (error) {
-        console.error('Erreur de connexion Supabase:', error);
+    } else {
+        console.warn('Supabase non configuré, utilisation de données de test');
         return generateTestData();
     }
 }
@@ -475,7 +503,6 @@ async function saveStatusChange() {
     try {
         showLoading(true);
         
-        // TODO: Sauvegarder en base de données
         const success = await updateInscriptionStatus(
             currentEditingInscription.id,
             newStatus,
@@ -507,27 +534,27 @@ async function saveStatusChange() {
 }
 
 async function updateInscriptionStatus(id, newStatus, comment) {
-    // Simulation
-    if (typeof supabase === 'undefined') {
+    if (typeof supabase !== 'undefined') {
+        try {
+            const { error } = await supabase
+                .from('inscriptions')
+                .update({
+                    statut: newStatus,
+                    commentaires: comment,
+                    date_modification: new Date().toISOString()
+                })
+                .eq('id', id);
+            
+            return !error;
+        } catch (error) {
+            console.error('Erreur Supabase update:', error);
+            return false;
+        }
+    } else {
+        // Simulation si pas de Supabase
         console.warn('Supabase non configuré, simulation de la mise à jour');
         await new Promise(resolve => setTimeout(resolve, 500));
         return true;
-    }
-    
-    try {
-        const { error } = await supabase
-            .from('inscriptions')
-            .update({
-                statut: newStatus,
-                commentaires: comment,
-                date_modification: new Date().toISOString()
-            })
-            .eq('id', id);
-        
-        return !error;
-    } catch (error) {
-        console.error('Erreur Supabase update:', error);
-        return false;
     }
 }
 
@@ -544,7 +571,6 @@ async function updateNotificationEmail() {
     try {
         showLoading(true);
         
-        // TODO: Sauvegarder en base
         const success = await saveEmailConfiguration(newEmail);
         
         if (success) {
@@ -570,29 +596,141 @@ async function testEmail() {
     
     try {
         showLoading(true);
+        showEmailStatus('📧 Envoi de l\'email de test...', 'info');
         
-        // TODO: Envoyer email de test
-        await sendTestEmail(email);
+        const success = await sendTestEmail(email);
         
-        showSuccess('Email de test envoyé');
+        if (success) {
+            showSuccess('Email de test envoyé avec succès !');
+            showEmailStatus('✅ Email de test envoyé à ' + email, 'success');
+        } else {
+            showError('Erreur lors de l\'envoi du test');
+            showEmailStatus('❌ Erreur lors de l\'envoi', 'error');
+        }
     } catch (error) {
         console.error('Erreur envoi test:', error);
         showError('Erreur lors de l\'envoi du test');
+        showEmailStatus('❌ Erreur: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
 }
 
 async function saveEmailConfiguration(email) {
-    // Simulation
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return true;
+    if (typeof supabase !== 'undefined') {
+        try {
+            const { error } = await supabase
+                .from('configuration')
+                .update({ email_notification: email })
+                .eq('id', '00000000-0000-0000-0000-000000000000');
+            
+            return !error;
+        } catch (error) {
+            console.error('Erreur sauvegarde email:', error);
+            return false;
+        }
+    } else {
+        // Simulation
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return true;
+    }
 }
 
 async function sendTestEmail(email) {
-    // Simulation
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return true;
+    // Vérifier si EmailJS est configuré et disponible
+    if (!EMAIL_CONFIG.IS_CONFIGURED) {
+        // Mode simulation pour le développement
+        console.log('📧 SIMULATION - Email de test envoyé à:', email);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Avertir l'utilisateur
+        alert('⚠️ Mode Simulation\n\nEmailJS n\'est pas encore configuré.\nL\'email de test a été simulé.\n\nPour recevoir de vrais emails, configurez EmailJS dans admin.js');
+        return true;
+    }
+    
+    // Vérifier si EmailJS est chargé
+    if (typeof emailjs === 'undefined') {
+        throw new Error('EmailJS non chargé');
+    }
+    
+    try {
+        // Envoyer l'email via EmailJS
+        const response = await emailjs.send(
+            EMAIL_CONFIG.SERVICE_ID,
+            EMAIL_CONFIG.TEMPLATE_ID,
+            {
+                to_email: email,
+                to_name: 'Karine',
+                subject: '[SUD Rail] Test de notification - Dashboard',
+                message: `Bonjour Karine,
+
+Ceci est un email de test pour vérifier que le système de notification fonctionne correctement.
+
+✅ Configuration validée :
+- Dashboard administrateur opérationnel
+- Service EmailJS configuré
+- Adresse email : ${email}
+
+Vous recevrez maintenant automatiquement un email pour chaque nouvelle inscription au forum du 07 octobre 2025.
+
+Cordialement,
+Système d'inscription SUD Rail`,
+                dashboard_url: window.location.href
+            },
+            EMAIL_CONFIG.PUBLIC_KEY
+        );
+        
+        console.log('✅ Email envoyé via EmailJS:', response);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erreur EmailJS:', error);
+        throw new Error('Erreur lors de l\'envoi via EmailJS: ' + error.text || error.message);
+    }
+}
+
+// Fonction pour envoyer email lors de nouvelle inscription
+async function sendNewInscriptionEmail(inscription) {
+    if (!EMAIL_CONFIG.IS_CONFIGURED || typeof emailjs === 'undefined') {
+        console.log('📧 SIMULATION - Email nouvelle inscription pour:', inscription.nom_prenom);
+        return true;
+    }
+    
+    const notificationEmail = elements.notificationEmail.value || 'karinesudrail@gmail.com';
+    
+    try {
+        const response = await emailjs.send(
+            EMAIL_CONFIG.SERVICE_ID,
+            EMAIL_CONFIG.TEMPLATE_ID,
+            {
+                to_email: notificationEmail,
+                to_name: 'Karine',
+                subject: `[SUD Rail] Nouvelle inscription - ${inscription.nom_prenom}`,
+                message: `Bonjour Karine,
+
+Nouvelle inscription reçue pour le forum du 07 octobre 2025 :
+
+👤 Nom/Prénom : ${inscription.nom_prenom}
+🏢 Numéro CP : ${inscription.numero_cp}
+📍 Lieu d'affectation (UO) : ${inscription.lieu_affectation_uo}
+📅 Date d'inscription : ${new Date(inscription.date_inscription).toLocaleString('fr-FR')}
+
+➡️ Accéder au dashboard : ${window.location.href}
+
+Cordialement,
+Système d'inscription SUD Rail`,
+                dashboard_url: window.location.href
+            },
+            EMAIL_CONFIG.PUBLIC_KEY
+        );
+        
+        console.log('✅ Email nouvelle inscription envoyé:', response);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Erreur envoi email nouvelle inscription:', error);
+        return false;
+    }
 }
 
 // === UTILITAIRES ===
@@ -603,12 +741,10 @@ function showLoading(loading) {
 }
 
 function showError(message) {
-    // Simple alert pour le moment
     alert('❌ ' + message);
 }
 
 function showSuccess(message) {
-    // Simple alert pour le moment
     alert('✅ ' + message);
 }
 
@@ -631,4 +767,4 @@ function debounce(func, wait) {
 // Export pour utilisation dans le HTML (onclick)
 window.openStatusModal = openStatusModal;
 
-console.log('🎛️ Dashboard admin initialisé');
+console.log('🎛️ Dashboard admin initialisé avec EmailJS');
