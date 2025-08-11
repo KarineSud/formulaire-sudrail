@@ -25,12 +25,35 @@ body {
     color: var(--text-color);
     background: linear-gradient(135deg, var(--light-bg) 0%, #e9ecef 100%);
     min-height: 100vh;
+    
+    /* Logo en fond transparent (Option 2) */
+    position: relative;
+}
+
+/* Logo en fond - Option 2 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 200px;
+    background-image: url('logo-sud-rail.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.05; /* Très transparent */
+    z-index: -1;
+    pointer-events: none;
 }
 
 .container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Header */
@@ -38,9 +61,10 @@ header {
     text-align: center;
     margin-bottom: 40px;
     padding: 30px 20px;
-    background: var(--white);
+    background: rgba(255, 255, 255, 0.95); /* Légèrement transparent pour voir le fond */
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
+    backdrop-filter: blur(10px); /* Effet de flou derrière */
 }
 
 .logo-container {
@@ -51,6 +75,7 @@ header {
     max-width: 200px;
     height: auto;
     border-radius: 4px;
+    /* Option 1 : Logo en bannière normale */
 }
 
 h1 {
@@ -71,11 +96,12 @@ h1 {
 
 /* Formulaire */
 .form-card {
-    background: var(--white);
+    background: rgba(255, 255, 255, 0.95); /* Légèrement transparent */
     padding: 40px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     margin-bottom: 30px;
+    backdrop-filter: blur(10px); /* Effet de flou derrière */
 }
 
 .form-card h2 {
@@ -248,12 +274,13 @@ input.success {
 
 /* Message de succès */
 .success-message {
-    background: var(--white);
+    background: rgba(255, 255, 255, 0.95);
     padding: 40px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
     text-align: center;
     border: 2px solid var(--success-color);
+    backdrop-filter: blur(10px);
 }
 
 .success-icon {
@@ -299,6 +326,21 @@ footer {
     text-decoration: underline;
 }
 
+/* Classes pour changer le style du logo */
+.logo-only-header body::before {
+    display: none; /* Masquer le logo de fond */
+}
+
+.logo-only-background .logo-container {
+    display: none; /* Masquer le logo en bannière */
+}
+
+.logo-only-background body::before {
+    opacity: 0.08; /* Logo de fond plus visible */
+    width: 500px;
+    height: 250px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -331,6 +373,12 @@ footer {
     .form-row .form-group {
         margin-bottom: 25px;
     }
+    
+    /* Logo de fond plus petit sur mobile */
+    body::before {
+        width: 300px;
+        height: 150px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -344,5 +392,12 @@ footer {
     
     input {
         padding: 10px 12px;
+    }
+    
+    /* Logo de fond encore plus petit */
+    body::before {
+        width: 250px;
+        height: 125px;
+        opacity: 0.03;
     }
 }
