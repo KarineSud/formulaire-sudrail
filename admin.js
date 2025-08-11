@@ -18,10 +18,10 @@ const adminState = {
     }
 };
 
-// Configuration EmailJS - CONFIGURATION CORRIGÉE ✅
+// Configuration EmailJS - CONFIGURATION FINALE CORRIGÉE ✅
 const EMAIL_CONFIG = {
     SERVICE_ID: 'service_e0akyao',          // ✅ Votre Service ID Gmail
-    TEMPLATE_ID: 'templateduq7yzl',        // ✅ Template ID CORRIGÉ (sans underscore)
+    TEMPLATE_ID: 'template_sfn136n',       // ✅ VRAI Template ID (corrigé !)
     PUBLIC_KEY: '4LkUHc9SbFqzXSZ-U',       // ✅ Vraie Public Key corrigée !
     IS_CONFIGURED: true                     // ✅ Configuration complète !
 };
@@ -645,17 +645,16 @@ async function sendTestEmail(email) {
     }
     
     try {
-        // Envoyer l'email via EmailJS avec la VRAIE Public Key
+        // Utiliser les mêmes noms de variables que dans votre exemple
         const templateParams = {
-            to_email: email,
-            to_name: 'Karine',
             subject: '[SUD Rail] Test de notification - Dashboard',
+            email: email, // Nom de variable identique à votre exemple
             message: `Bonjour Karine,
 
 🎉 SUCCÈS ! Ceci est un email de test pour vérifier que le système de notification fonctionne correctement.
 
 ✅ Configuration validée :
-- Dashboard administrateur opérationnel
+- Dashboard administrateur opérationnel  
 - Service EmailJS configuré (${EMAIL_CONFIG.SERVICE_ID})
 - Template configuré (${EMAIL_CONFIG.TEMPLATE_ID})
 - Public Key corrigée (${EMAIL_CONFIG.PUBLIC_KEY})
@@ -704,9 +703,8 @@ async function sendNewInscriptionEmail(inscription) {
     
     try {
         const templateParams = {
-            to_email: notificationEmail,
-            to_name: 'Karine',
             subject: `[SUD Rail] Nouvelle inscription - ${inscription.nom_prenom}`,
+            email: notificationEmail, // Utiliser "email" comme dans votre exemple
             message: `Bonjour Karine,
 
 Nouvelle inscription reçue pour le forum du 07 octobre 2025 :
@@ -777,8 +775,8 @@ function debounce(func, wait) {
 // Export pour utilisation dans le HTML (onclick)
 window.openStatusModal = openStatusModal;
 
-console.log('🎛️ Dashboard admin initialisé avec EmailJS CORRIGÉ');
+console.log('🎛️ Dashboard admin initialisé avec EmailJS FINAL');
 console.log('📧 EmailJS Service ID:', EMAIL_CONFIG.SERVICE_ID);
 console.log('📧 EmailJS Template ID:', EMAIL_CONFIG.TEMPLATE_ID);
 console.log('📧 EmailJS Public Key:', EMAIL_CONFIG.PUBLIC_KEY);
-console.log('📧 Configuration complète: ✅ PRÊT POUR VRAIS EMAILS !');
+console.log('📧 Configuration finale: ✅ PRÊT POUR VRAIS EMAILS !');
