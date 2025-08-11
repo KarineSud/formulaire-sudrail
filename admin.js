@@ -563,11 +563,18 @@ async function updateInscriptionStatus(id, newStatus, comment) {
     }
 }
 
-// === SUPPRESSION D'INSCRIPTION ===
+// === SUPPRESSION D'INSCRIPTION AVEC DEBUGGING ===
 
 function confirmDeleteInscription(inscriptionId) {
+    console.log('🔍 DÉBUT confirmDeleteInscription, ID:', inscriptionId);
+    
     const inscription = adminState.inscriptions.find(i => i.id === inscriptionId);
-    if (!inscription) return;
+    if (!inscription) {
+        console.error('❌ Inscription non trouvée pour ID:', inscriptionId);
+        return;
+    }
+    
+    console.log('✅ Inscription trouvée:', inscription);
     
     const confirmMessage = `Êtes-vous sûr de vouloir supprimer cette inscription ?\n\n` +
         `👤 ${inscription.nom_prenom}\n` +
@@ -576,18 +583,27 @@ function confirmDeleteInscription(inscriptionId) {
         `📅 Date: ${new Date(inscription.date_inscription).toLocaleDateString('fr-FR')}\n\n` +
         `⚠️ Cette action est irréversible !`;
     
+    console.log('🤔 Affichage de la confirmation...');
+    
     if (confirm(confirmMessage)) {
+        console.log('✅ Utilisateur a confirmé la suppression');
         deleteInscription(inscriptionId);
+    } else {
+        console.log('❌ Utilisateur a annulé la suppression');
     }
 }
 
 async function deleteInscription(inscriptionId) {
+    console.log('🗑️ DÉBUT deleteInscription, ID:', inscriptionId);
+    
     try {
         showLoading(true);
         
         const success = await deleteInscriptionFromDatabase(inscriptionId);
         
         if (success) {
+            console.log('✅ Suppression réussie, mise à jour de l\'interface...');
+            
             // Supprimer localement
             adminState.inscriptions = adminState.inscriptions.filter(i => i.id !== inscriptionId);
             
@@ -596,38 +612,50 @@ async function deleteInscription(inscriptionId) {
             applyFilters();
             
             showSuccess('Inscription supprimée avec succès');
+            console.log('✅ Interface mise à jour');
         } else {
+            console.error('❌ Échec de la suppression en base');
             showError('Erreur lors de la suppression');
         }
     } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
+        console.error('❌ Erreur dans deleteInscription:', error);
         showError('Erreur lors de la suppression');
     } finally {
         showLoading(false);
+        console.log('🔚 FIN deleteInscription');
     }
 }
 
 async function deleteInscriptionFromDatabase(id) {
+    console.log('📡 DÉBUT deleteInscriptionFromDatabase, ID:', id);
+    console.log('📡 Type de supabase:', typeof supabase);
+    
     if (typeof supabase !== 'undefined') {
         try {
-            const { error } = await supabase
+            console.log('📡 Tentative suppression Supabase...');
+            
+            const { data, error } = await supabase
                 .from('inscriptions')
                 .delete()
-                .eq('id', id);
+                .eq('id', id)
+                .select(); // Ajouter select pour voir ce qui est supprimé
+            
+            console.log('📡 Réponse Supabase data:', data);
+            console.log('📡 Réponse Supabase error:', error);
             
             if (error) {
-                console.error('Erreur Supabase delete:', error);
+                console.error('❌ Erreur Supabase delete:', error);
                 return false;
             }
             
+            console.log('✅ Suppression Supabase réussie, données supprimées:', data);
             return true;
         } catch (error) {
-            console.error('Erreur de connexion Supabase:', error);
+            console.error('❌ Exception lors de la suppression Supabase:', error);
             return false;
         }
     } else {
-        // Simulation si pas de Supabase
-        console.warn('Supabase non configuré, simulation de la suppression');
+        console.warn('⚠️ Supabase non configuré, simulation de la suppression');
         await new Promise(resolve => setTimeout(resolve, 500));
         return true;
     }
@@ -849,9 +877,9 @@ function debounce(func, wait) {
 window.openStatusModal = openStatusModal;
 window.confirmDeleteInscription = confirmDeleteInscription;
 
-console.log('🎛️ Dashboard admin initialisé avec fonction SUPPRESSION');
+console.log('🎛️ Dashboard admin initialisé avec fonction SUPPRESSION + DEBUGGING');
 console.log('📧 EmailJS Service ID:', EMAIL_CONFIG.SERVICE_ID);
 console.log('📧 EmailJS Template ID:', EMAIL_CONFIG.TEMPLATE_ID);
 console.log('📧 EmailJS Public Key:', EMAIL_CONFIG.PUBLIC_KEY);
-console.log('🗑️ Fonction suppression activée dans le dashboard');
+console.log('🗑️ Fonction suppression avec LOGS DÉTAILLÉS activée');
 console.log('📧 Configuration finale: ✅ PRÊT POUR VRAIS EMAILS !');
