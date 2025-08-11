@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Forum Contractuels SUD Rail</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="https://via.placeholder.com/200x80/2E8B57/FFFFFF?text=SUD+Rail" alt="SUD Rail" class="logo">
+            </div>
+            <h1>Inscription Forum Contractuels SUD Rail</h1>
+            <p class="event-info">
+                📅 <strong>Mardi 07 octobre 2025 à 9h30</strong><br>
+                📍 <strong>Théâtre Traversière</strong> - 15 bis rue Traversière 75012 Paris
+            </p>
+        </header>
+
+        <main>
+            <div class="form-card">
+                <h2>Inscription</h2>
+                <p class="intro">Complétez le formulaire ci-dessous pour vous inscrire au forum. Tous les champs sont obligatoires.</p>
+                
+                <form id="inscriptionForm">
+                    <div class="form-group">
+                        <label for="nomPrenom">
+                            <span class="label-text">Nom / Prénom</span>
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="nomPrenom" name="nomPrenom" required maxlength="100" placeholder="Ex: Dupont Jean">
+                        <div class="error-message" id="nomPrenomError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="numeroCP">
+                            <span class="label-text">Numéro de CP</span>
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="numeroCP" name="numeroCP" required pattern="[0-9]{5}" maxlength="5" placeholder="Ex: 75012">
+                        <div class="validation-message" id="cpValidation"></div>
+                        <div class="error-message" id="numeroCPError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lieuAffectation">
+                            <span class="label-text">Lieu d'affectation (UO)</span>
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" id="lieuAffectation" name="lieuAffectation" required maxlength="100" placeholder="Ex: Gare du Nord">
+                        <div class="error-message" id="lieuAffectationError"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="submitBtn" class="btn-primary">
+                            <span class="btn-text">Confirmer mon inscription</span>
+                            <span class="loader" id="submitLoader"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Message de confirmation -->
+            <div class="success-message" id="successMessage" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h3>Inscription confirmée !</h3>
+                <p>Votre inscription a bien été prise en compte. Vous recevrez les détails pratiques par email.</p>
+                <p class="contact-info">Pour toute question, n'hésitez pas à contacter vos délégués SUD Rail de proximité.</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 SUD Rail - Syndicat Solidaire</p>
+            <p><a href="admin.html" class="admin-link">Accès administration</a></p>
+        </footer>
+    </div>
+
+    <script src="config/supabase.js"></script>
+    <script src="config/constants.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
